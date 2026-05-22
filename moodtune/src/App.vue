@@ -64,7 +64,7 @@ export default {
     return {
       videoId: null,
       ytPlayer: null,
-      ytReady: false
+      ytPronto: false
     }
   },
 
@@ -75,7 +75,7 @@ export default {
       document.head.appendChild(tag)
     }
     window.onYouTubeIframeAPIReady = () => {
-      this.ytReady = true
+      this.ytPronto = true
       if (this.videoId) this.creaPlayer(this.videoId)
     }
   },
@@ -90,7 +90,7 @@ export default {
       if (!nuovoId) return
       this.videoId = nuovoId
       this.playerStore.inRiproduzione = true
-      if (this.ytReady) {
+      if (this.ytPronto) {
         if (this.ytPlayer) {
           this.ytPlayer.destroy()
           this.ytPlayer = null
@@ -106,7 +106,7 @@ export default {
       }
     }
   },
-
+  
   methods: {
     creaPlayer(videoId) {
       this.ytPlayer = new window.YT.Player("yt-player-container", {
