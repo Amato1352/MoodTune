@@ -13,6 +13,9 @@
     </div>
 
     <div class="lista">
+      <div v-if="erroreLastFm" class="errore-ultimo">
+        {{ erroreLastFm }}
+      </div>
       <div class="riga"
         v-for="brano in risultatiRicerca.length ? risultatiRicerca : brani"
         :key="brano.mbid || brano.url"
@@ -74,7 +77,8 @@ export default {
       fotoArtista: null,
       caricandoFoto: false,
       query: '',
-      risultatiRicerca: []
+      risultatiRicerca: [],
+      erroreLastFm: null
     }
   },
 
@@ -84,8 +88,15 @@ export default {
 
   methods: {
     async caricaBrani() {
-      const dati = await getTopBrani(this.paginaCorrente)
-      this.brani = dati.tracks.track
+      try {
+        const dati = await getTopBrani(this.paginaCorrente)
+        this.brani = dati.tracks?.track || []
+        this.erroreLastFm = null
+      } catch (error) {
+        console.error('Errore caricamento brani:', error)
+        this.brani = []
+        this.erroreLastFm = 'Impossibile caricare i brani. Controlla la connessione o riprova più tardi.'
+      }
     },
     paginaPrecedente() {
       this.paginaCorrente--
@@ -120,14 +131,23 @@ export default {
     async cercaBraniEsplora() {
       if (!this.query.trim()) {
         this.risultatiRicerca = []
+        this.erroreLastFm = null
         return
       }
-      const dati = await cercaBrani(this.query)
-      this.risultatiRicerca = dati.results?.trackmatches?.track || []
+      try {
+        const dati = await cercaBrani(this.query)
+        this.risultatiRicerca = dati.results?.trackmatches?.track || []
+        this.erroreLastFm = null
+      } catch (error) {
+        console.error('Errore ricerca brani:', error)
+        this.risultatiRicerca = []
+        this.erroreLastFm = 'Impossibile cercare brani. Controlla la connessione o riprova più tardi.'
+      }
     },
     svuotaRicerca() {
       this.query = ''
       this.risultatiRicerca = []
+      this.erroreLastFm = null
     }
   }
 }
@@ -146,6 +166,15 @@ export default {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 32px;
+}
+
+.errore-ultimo {
+  color: var(--text-error);
+  background: rgba(255, 0, 0, 0.05);
+  border: 1px solid rgba(255, 0, 0, 0.15);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
 }
 
 .riga {

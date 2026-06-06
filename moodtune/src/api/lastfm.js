@@ -1,19 +1,31 @@
 import { config } from '../config'
 
+const baseUrl = 'https://ws.audioscrobbler.com/2.0/'
+
+async function callLastFm(params) {
+  const url = new URL(baseUrl)
+  url.search = new URLSearchParams({
+    ...params,
+    api_key: config.LASTFM_API_KEY.trim(),
+    format: 'json'
+  })
+
+  const risposta = await fetch(url.toString())
+  if (!risposta.ok) {
+    throw new Error(`Last.fm request failed: ${risposta.status} ${risposta.statusText}`)
+  }
+
+  return risposta.json()
+}
+
 export async function getTopBrani(pagina) {
-  const risposta = await fetch(`https://ws.audioscrobbler.com/2.0/?method=chart.getTopTracks&api_key=${config.LASTFM_API_KEY}&format=json&page=${pagina}&limit=50`)
-  const dati = await risposta.json()
-  return dati
+  return callLastFm({ method: 'chart.getTopTracks', page: pagina, limit: 50 })
 }
 
 export async function getTopArtisti(pagina) {
-  const risposta = await fetch(`https://ws.audioscrobbler.com/2.0/?method=chart.gettopartists&api_key=${config.LASTFM_API_KEY}&format=json&page=${pagina}&limit=50`)
-  const dati = await risposta.json()
-  return dati
+  return callLastFm({ method: 'chart.getTopArtists', page: pagina, limit: 50 })
 }
 
 export async function cercaBrani(query) {
-  const risposta = await fetch(`https://ws.audioscrobbler.com/2.0/?method=track.search&track=${encodeURIComponent(query)}&api_key=${config.LASTFM_API_KEY}&format=json&limit=5`)
-  const dati = await risposta.json()
-  return dati
+  return callLastFm({ method: 'track.search', track: query, limit: 5 })
 }
